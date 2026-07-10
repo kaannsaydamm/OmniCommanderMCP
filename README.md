@@ -1,97 +1,56 @@
-# OmniCommanderMCP
+# Omni Commander MCP
 
-Cross-platform MCP agent for **full local computer control** from MCP clients such as ChatGPT, Claude Desktop, Codex, IDE agents, and custom orchestrators.
+Omni Commander is a local-first, cross-platform MCP agent for terminal, filesystem, process, application, window, desktop and operating-system control.
 
-## Current scope
+## Current 0.2 feature branch bootstrap
 
-- Windows, macOS, and Linux adapters
-- Arbitrary PowerShell / shell command execution
-- Detached processes and application launch/close
-- Full-path file read/write/list/copy/move/delete
-- Process and service management
-- Network inspection
-- Native package managers (`winget`, `brew`, `apt`, `dnf`, `pacman`)
-- Windows Registry access
-- Screen capture returned as MCP image content
-- Mouse movement and click
-- Keyboard typing and hotkeys
-- Clipboard read/write
-
-The MCP process has the same permissions as the OS account that launches it. Running it elevated gives elevated access.
-
-## Install
+The complete, locally validated 0.2.0 source tree is staged on `feat/remote-computer-use` as a checksum-protected source archive because GitHub-hosted Actions are currently not starting for this repository.
 
 ```bash
+git clone --branch feat/remote-computer-use https://github.com/kaannsaydamm/OmniCommanderMCP.git
+cd OmniCommanderMCP
+npm run materialize
 npm install
+npm run check
+npm test
 npm run build
-npm start
 ```
 
-Node.js 20+ is required.
+`npm run materialize`:
 
-## Local MCP configuration
+1. Concatenates the seven files under `.omni/`.
+2. Verifies the exact encoded size, archive size and SHA-256 digest.
+3. Extracts the complete 0.2.0 source tree into the repository.
+4. Verifies the resulting package version.
 
-```json
-{
-  "mcpServers": {
-    "omni-commander": {
-      "command": "node",
-      "args": ["/absolute/path/OmniCommanderMCP/dist/index.js"]
-    }
-  }
-}
-```
-
-## ChatGPT web / remote control architecture
-
-OmniCommander is deliberately local-first. The recommended remote topology is:
+The expected archive SHA-256 is:
 
 ```text
-ChatGPT web / remote MCP client
-            |
-      authenticated tunnel
-            |
-OmniCommander agent on your PC
-            |
- terminal + filesystem + OS + computer-use adapters
+a15ba5bd2ca3e39449f9f1e984694ab4bdb2b825f4b296f618ecf97d2bdef9ff
 ```
 
-Do **not** expose an unauthenticated local MCP endpoint directly to the internet. Use an authenticated MCP tunnel or a private overlay network. A Streamable HTTP gateway, pairing flow, device identity, scoped tokens, audit log, and approval profiles are planned in the remote-agent milestone.
+## Intended control surfaces
 
-## Tool categories
-
-### Terminal and OS
-`run_command`, `spawn_process`, `list_processes`, `kill_process`, `list_services`, `service_control`, `network_info`, `package_manager`, `windows_registry`, `system_info`
-
-### Filesystem
-`read_file`, `write_file`, `list_directory`, `create_directory`, `delete_path`, `move_path`, `copy_file`
-
-### Applications and computer use
-`launch_application`, `close_application`, `capture_screen`, `capture_screen_image`, `mouse_move`, `mouse_click`, `keyboard_type`, `keyboard_hotkey`, `clipboard_get`, `clipboard_set`
-
-## Platform prerequisites for computer use
-
-Windows uses built-in PowerShell and .NET APIs.
-
-macOS currently expects `cliclick` for pointer actions:
-
-```bash
-brew install cliclick
-```
-
-Grant Accessibility and Screen Recording permissions to Terminal/Node.
-
-Linux currently uses `xdotool` and either `gnome-screenshot` or ImageMagick `import`. Wayland environments may require `ydotool`, `wtype`, or desktop-portal adapters in a later milestone.
+- Local MCP over stdio.
+- Authenticated Streamable HTTP.
+- OpenAI Secure MCP Tunnel for ChatGPT web without opening inbound ports.
+- Filesystem read/write/edit/search/watch operations.
+- Interactive and one-shot shell/process sessions.
+- Application launch/close and window management.
+- Screenshot observation, mouse, keyboard, clipboard and multi-step computer-use actions.
+- OCR text discovery and click-by-text.
+- Windows UI Automation, macOS Accessibility and Linux AT-SPI integration points.
+- Services, packages, disks, users, groups, scheduled tasks, firewall, logs and power operations.
+- Network diagnostics and HTTP requests.
+- Git and archive operations.
+- Safe and full security profiles with JSONL audit logging.
 
 ## Security profiles
 
-The current alpha exposes the host account's permissions. Before remote exposure, use a dedicated OS account or VM. Planned profiles:
+The default `safe` profile limits filesystem roots, blocks known destructive command patterns, restricts private-network HTTP targets and redacts audit fields.
 
-- `observe`: screenshots and read-only inspection
-- `safe`: normal file/application operations with destructive actions restricted
-- `developer`: terminal, package managers, services, and project automation
-- `full`: unrestricted host-level control
+The explicitly selected `full` profile removes those policy restrictions and runs with the operating-system rights of the local agent process. It does not bypass OS permissions, elevation boundaries or endpoint-security controls.
 
-## Status
+## Important status
 
-This repository is an active alpha. The local stdio MCP core and initial cross-platform computer-use layer are implemented. Remote ChatGPT connectivity, durable sessions, approval UX, richer window/UI automation, multi-monitor support, OCR/accessibility-tree extraction, browser control, and installers are next.
+The 0.2.0 source has passed TypeScript type checking, six automated tests and production build locally. It has not yet been exercised on the user's actual Windows desktop because the connected Desktop Commander device is offline. Secure MCP Tunnel setup also requires the user's own OpenAI control-plane access and local tunnel-client authentication.
