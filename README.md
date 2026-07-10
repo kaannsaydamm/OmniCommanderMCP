@@ -2,17 +2,16 @@
 
 Omni Commander is a local-first, cross-platform MCP agent for terminal, filesystem, process, application, window, desktop and operating-system control.
 
-## Current 0.2 feature branch bootstrap
+## Install the current 0.2 source
 
-The complete, locally validated 0.2.0 source tree is staged on `feat/remote-computer-use` as a checksum-protected source archive because GitHub-hosted Actions are currently not starting for this repository.
+The complete, locally validated 0.2.0 source tree is stored as a checksum-protected source archive so the repository remains installable even while GitHub-hosted runners are unavailable for this repository.
 
 ```bash
-git clone --branch feat/remote-computer-use https://github.com/kaannsaydamm/OmniCommanderMCP.git
+git clone https://github.com/kaannsaydamm/OmniCommanderMCP.git
 cd OmniCommanderMCP
 npm run materialize
 npm install
 npm run check
-npm test
 npm run build
 ```
 
@@ -29,12 +28,12 @@ The expected archive SHA-256 is:
 a15ba5bd2ca3e39449f9f1e984694ab4bdb2b825f4b296f618ecf97d2bdef9ff
 ```
 
-## Intended control surfaces
+## Control surfaces
 
 - Local MCP over stdio.
 - Authenticated Streamable HTTP.
 - OpenAI Secure MCP Tunnel for ChatGPT web without opening inbound ports.
-- Filesystem read/write/edit/search/watch operations.
+- Filesystem read/write/edit/search operations.
 - Interactive and one-shot shell/process sessions.
 - Application launch/close and window management.
 - Screenshot observation, mouse, keyboard, clipboard and multi-step computer-use actions.
@@ -45,12 +44,34 @@ a15ba5bd2ca3e39449f9f1e984694ab4bdb2b825f4b296f618ecf97d2bdef9ff
 - Git and archive operations.
 - Safe and full security profiles with JSONL audit logging.
 
+## Tool surface
+
+The 0.2.0 source registers 80 MCP tools, including:
+
+- `shell_exec`, `process_start`, `process_input`, `process_output`, `process_terminate`
+- `fs_read`, `fs_write`, `fs_patch`, `fs_search`, `fs_copy`, `fs_move`, `fs_delete`
+- `computer_observe`, `computer_sequence`, `computer_act_and_observe`, `computer_click_text`
+- `desktop_screenshot`, `screen_ocr`, `screen_find_text`, `accessibility_snapshot`, `accessibility_invoke`
+- `mouse_move`, `mouse_click`, `mouse_drag`, `mouse_scroll`
+- `keyboard_type`, `keyboard_key`, `keyboard_hotkey`, `clipboard_read`, `clipboard_write`
+- `application_launch`, `application_close`, `window_list`, `window_control`
+- `service_control`, `package_manage`, `scheduled_task_manage`, `firewall_rule`, `power_control`
+- `http_request`, `http_download`, Git tools and archive tools
+
 ## Security profiles
 
-The default `safe` profile limits filesystem roots, blocks known destructive command patterns, restricts private-network HTTP targets and redacts audit fields.
+The default `safe` profile limits filesystem roots, blocks known destructive command patterns, restricts private-network HTTP targets and redacts sensitive audit fields.
 
-The explicitly selected `full` profile removes those policy restrictions and runs with the operating-system rights of the local agent process. It does not bypass OS permissions, elevation boundaries or endpoint-security controls.
+The explicitly selected `full` profile removes those policy restrictions and runs with the operating-system rights of the local agent process. It does not bypass OS permissions, elevation boundaries, UAC, SIP, sandboxing or endpoint-security controls.
 
-## Important status
+## Validation status
 
-The 0.2.0 source has passed TypeScript type checking, six automated tests and production build locally. It has not yet been exercised on the user's actual Windows desktop because the connected Desktop Commander device is offline. Secure MCP Tunnel setup also requires the user's own OpenAI control-plane access and local tunnel-client authentication.
+A clean bootstrap was independently executed in an empty temporary directory. It passed:
+
+- Archive size and SHA-256 validation
+- `npm install`
+- TypeScript type checking
+- 6/6 automated tests
+- Production build
+
+The code has not yet been exercised on the user's actual Windows desktop because the connected Desktop Commander device is offline. Secure MCP Tunnel activation also requires the user's own OpenAI control-plane access and local tunnel-client authentication.
