@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "omni-commander": {
+      "command": "node",
+      "args": [
+        "/ABSOLUTE/PATH/OmniCommanderMCP/dist/index.js",
+        "--profile=full"
+      ],
+      "env": {
+        "OMNI_AUDIT_ENABLED": "true"
+      }
+    }
+  }
+}
