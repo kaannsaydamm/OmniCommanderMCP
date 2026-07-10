@@ -7,10 +7,17 @@ on:
     paths:
       - '.omni/**'
       - '.github/workflows/bootstrap.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.omni/**'
+      - '.github/workflows/bootstrap.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   bootstrap:
