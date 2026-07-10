@@ -30,21 +30,57 @@ jobs:
           ref: feat/remote-computer-use
           fetch-depth: 0
 
-      - name: Materialize tested source tree
+      - name: Materialize and commit tested source tree
         shell: bash
         run: |
-          set -euo pipefail
+          set +e
+          exec > >(tee /tmp/omni-bootstrap.log) 2>&1
+          echo '== staged chunks =='
+          ls -la .omni
+          echo '== concatenate =='
           cat .omni/chunk-* > /tmp/omni.b64
+          wc -c /tmp/omni.b64
+          echo '== decode =='
           base64 --decode /tmp/omni.b64 > /tmp/omni.tar.gz
-          tar -xzf /tmp/omni.tar.gz -C .
-          rm -rf .omni .github/workflows/bootstrap.yml
-
-      - name: Commit source tree
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'feat: replace prototype with Omni Commander 0.2.0'
-          git push origin HEAD:feat/remote-computer-use
+          status=$?
+          echo "decode_status=$status"
+          if [ "$status" -eq 0 ]; then
+            gzip -t /tmp/omni.tar.gz
+            status=$?
+            echo "gzip_status=$status"
+          fi
+          if [ "$status" -eq 0 ]; then
+            tar -tzf /tmp/omni.tar.gz | head -100
+            status=${PIPESTATUS[0]}
+            echo "tar_list_status=$status"
+          fi
+          if [ "$status" -eq 0 ]; then
+            tar -xzf /tmp/omni.tar.gz -C .
+            status=$?
+            echo "tar_extract_status=$status"
+          fi
+          if [ "$status" -eq 0 ]; then
+            rm -rf .omni .github/workflows/bootstrap.yml
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -A
+            git status --short
+            git commit -m 'feat: replace prototype with Omni Commander 0.2.0'
+            status=$?
+            echo "commit_status=$status"
+          fi
+          if [ "$status" -eq 0 ]; then
+            git push origin HEAD:feat/remote-computer-use
+            status=$?
+            echo "push_status=$status"
+          fi
+          if [ "$status" -ne 0 ]; then
+            mkdir -p .omni
+            cp /tmp/omni-bootstrap.log .omni/bootstrap-error.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add .omni/bootstrap-error.txt
+            git commit -m 'chore: capture bootstrap failure' || true
+            git push origin HEAD:feat/remote-computer-use || true
+            exit "$status"
+          fi
