@@ -29,58 +29,45 @@ jobs:
         with:
           ref: feat/remote-computer-use
           fetch-depth: 0
+          persist-credentials: true
 
-      - name: Materialize and commit tested source tree
+      - name: Materialize tested source tree
+        id: materialize
         shell: bash
         run: |
-          set +e
+          set -euo pipefail
           exec > >(tee /tmp/omni-bootstrap.log) 2>&1
           echo '== staged chunks =='
           ls -la .omni
-          echo '== concatenate =='
           cat .omni/chunk-* > /tmp/omni.b64
-          wc -c /tmp/omni.b64
-          echo '== decode =='
+          test "$(wc -c < /tmp/omni.b64)" -eq 109992
           base64 --decode /tmp/omni.b64 > /tmp/omni.tar.gz
-          status=$?
-          echo "decode_status=$status"
-          if [ "$status" -eq 0 ]; then
-            gzip -t /tmp/omni.tar.gz
-            status=$?
-            echo "gzip_status=$status"
-          fi
-          if [ "$status" -eq 0 ]; then
-            tar -tzf /tmp/omni.tar.gz | head -100
-            status=${PIPESTATUS[0]}
-            echo "tar_list_status=$status"
-          fi
-          if [ "$status" -eq 0 ]; then
-            tar -xzf /tmp/omni.tar.gz -C .
-            status=$?
-            echo "tar_extract_status=$status"
-          fi
-          if [ "$status" -eq 0 ]; then
-            rm -rf .omni .github/workflows/bootstrap.yml
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add -A
-            git status --short
-            git commit -m 'feat: replace prototype with Omni Commander 0.2.0'
-            status=$?
-            echo "commit_status=$status"
-          fi
-          if [ "$status" -eq 0 ]; then
-            git push origin HEAD:feat/remote-computer-use
-            status=$?
-            echo "push_status=$status"
-          fi
-          if [ "$status" -ne 0 ]; then
-            mkdir -p .omni
-            cp /tmp/omni-bootstrap.log .omni/bootstrap-error.txt
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add .omni/bootstrap-error.txt
-            git commit -m 'chore: capture bootstrap failure' || true
-            git push origin HEAD:feat/remote-computer-use || true
-            exit "$status"
-          fi
+          gzip -t /tmp/omni.tar.gz
+          tar -tzf /tmp/omni.tar.gz > /tmp/omni-files.txt
+          wc -l /tmp/omni-files.txt
+          tar -xzf /tmp/omni.tar.gz -C .
+          test -f package.json
+          grep -q '"version": "0.2.0"' package.json
+          npm install
+          npm run check
+          npm run build
+
+      - name: Commit materialized source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: materialize Omni Commander 0.2.0 source tree'
+          git push origin HEAD:feat/remote-computer-use
+
+      - name: Upload bootstrap diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: omni-bootstrap-diagnostics
+          path: |
+            /tmp/omni-bootstrap.log
+            /tmp/omni-files.txt
+          if-no-files-found: ignore
