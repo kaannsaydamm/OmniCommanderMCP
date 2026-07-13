@@ -13,6 +13,7 @@ export interface OmniConfig {
   maxOutputBytes: number;
   maxSearchResults: number;
   maxSearchFileBytes: number;
+  maxWatchEvents: number;
   processTimeoutMs: number;
   sessionBufferBytes: number;
   allowNetwork: boolean;
@@ -53,6 +54,7 @@ function safeDefaults(configPath: string): OmniConfig {
     maxOutputBytes: 2 * 1024 * 1024,
     maxSearchResults: 500,
     maxSearchFileBytes: 2 * 1024 * 1024,
+    maxWatchEvents: 10_000,
     processTimeoutMs: 30_000,
     sessionBufferBytes: 4 * 1024 * 1024,
     allowNetwork: true,
@@ -75,6 +77,7 @@ function fullDefaults(configPath: string): OmniConfig {
     maxOutputBytes: 16 * 1024 * 1024,
     maxSearchResults: 5_000,
     maxSearchFileBytes: 16 * 1024 * 1024,
+    maxWatchEvents: 100_000,
     processTimeoutMs: 120_000,
     sessionBufferBytes: 32 * 1024 * 1024,
     allowNetwork: true,

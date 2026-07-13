@@ -5,6 +5,7 @@ import type { PolicyEngine } from '../policy.js';
 import type { AuditLogger } from '../audit.js';
 import type { SessionManager } from '../managers/session-manager.js';
 import type { SearchManager } from '../managers/search-manager.js';
+import type { WatchManager } from '../managers/watch-manager.js';
 import { errorMessage, jsonResult } from '../utils/result.js';
 
 export type ToolHandler = (args: any, extra?: any) => Promise<unknown> | unknown;
@@ -16,6 +17,7 @@ export interface ToolContext {
   audit: AuditLogger;
   sessions: SessionManager;
   search: SearchManager;
+  watches: WatchManager;
   register: (
     server: McpServer,
     name: string,
@@ -35,7 +37,8 @@ export function createToolContext(
   policy: PolicyEngine,
   audit: AuditLogger,
   sessions: SessionManager,
-  search: SearchManager
+  search: SearchManager,
+  watches: WatchManager
 ): ToolContext {
   const context = {} as ToolContext;
   context.config = config;
@@ -43,6 +46,7 @@ export function createToolContext(
   context.audit = audit;
   context.sessions = sessions;
   context.search = search;
+  context.watches = watches;
 
   const runAudited = async <T>(name: string, args: unknown, handler: () => Promise<T>): Promise<T | CallToolResult> => {
     const startedAt = Date.now();

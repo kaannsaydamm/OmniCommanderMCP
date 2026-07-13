@@ -10,9 +10,12 @@
 - Optional authenticated Streamable HTTP transport.
 - Cross-platform CI and MCP tool-discovery integration test.
 
-## 0.3
+## Implemented on main for 0.3
 
-- Native file-watch sessions and event pagination.
+- Native file-watch sessions with bounded event retention, cursor pagination, policy enforcement, and lifecycle cleanup.
+
+## 0.3 remaining
+
 - Browser-specific CDP/Playwright adapter alongside generic computer use.
 - Rich binary document adapters for PDF, DOCX, XLSX, images, audio/video metadata, and databases.
 - Stronger Wayland backends and compositor-specific capability adapters.

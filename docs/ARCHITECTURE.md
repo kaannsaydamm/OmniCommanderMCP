@@ -21,6 +21,8 @@ Private client ─ authenticated Streamable HTTP ─ McpServer
  Git/archives      services/packages        stdin/output buffers      vision/UI/OCR
 ```
 
+`WatchManager` sits beside the process and search managers. It owns native watcher handles, assigns monotonically increasing event cursors, bounds retained events by `maxWatchEvents`, and closes handles on explicit stop, transport shutdown, or stale-session cleanup.
+
 ## Transport modes
 
 ### Stdio
@@ -58,6 +60,10 @@ Adapters report capabilities instead of pretending unsupported operations succee
 ## Process sessions
 
 Each managed process stores UUID, PID, command, working directory, timestamps, state, exit code/signal, bounded output, and an absolute read offset. Clients can interact with REPLs and long-running commands through stdin and paginated output.
+
+## File-watch sessions
+
+Each watch session stores UUID, canonical policy-approved root, recursive flag, timestamps, state, a native watcher handle, and a bounded cursor-addressed event buffer. Reads use an exclusive cursor and report both retention truncation and whether another page is available. Native watcher errors become retained error events and terminal session state.
 
 ## Remote trust boundary
 

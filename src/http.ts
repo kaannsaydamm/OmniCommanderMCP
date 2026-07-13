@@ -6,6 +6,7 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import type { NextFunction, Request, Response } from 'express';
 import { createServer } from './server.js';
 import type { SessionManager } from './managers/session-manager.js';
+import type { WatchManager } from './managers/watch-manager.js';
 
 interface HttpOptions {
   host: string;
@@ -17,6 +18,7 @@ interface HttpOptions {
 interface ActiveTransport {
   transport: StreamableHTTPServerTransport;
   sessions: SessionManager;
+  watches: WatchManager;
 }
 
 function cliValue(argv: string[], name: string): string | undefined {
@@ -88,11 +90,16 @@ export async function runHttp(argv = process.argv.slice(2)): Promise<void> {
       let transport: StreamableHTTPServerTransport;
       transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: () => randomUUID(),
-        onsessioninitialized: (initializedId) => { transports.set(initializedId, { transport, sessions: runtime.sessions }); }
+        onsessioninitialized: (initializedId) => {
+          transports.set(initializedId, { transport, sessions: runtime.sessions, watches: runtime.watches });
+        }
       });
       transport.onclose = () => {
         const id = transport.sessionId;
-        if (id) transports.delete(id);
+        if (id) {
+          transports.get(id)?.watches.closeAll();
+          transports.delete(id);
+        }
       };
       transport.onerror = (error) => process.stderr.write(`[omni-commander:http] transport error: ${error.message}\n`);
       await runtime.server.connect(transport as any);
@@ -116,6 +123,7 @@ export async function runHttp(argv = process.argv.slice(2)): Promise<void> {
     const active = sessionId ? transports.get(sessionId) : undefined;
     if (!active) { response.status(404).send('Unknown MCP session'); return; }
     await active.transport.handleRequest(request, response);
+    active.watches.closeAll();
     if (sessionId) transports.delete(sessionId);
   });
 
@@ -124,13 +132,19 @@ export async function runHttp(argv = process.argv.slice(2)): Promise<void> {
   });
 
   const cleanupTimer = setInterval(() => {
-    for (const active of transports.values()) active.sessions.cleanup();
+    for (const active of transports.values()) {
+      active.sessions.cleanup();
+      active.watches.cleanup();
+    }
   }, 30 * 60_000);
   cleanupTimer.unref?.();
 
   const shutdown = async (): Promise<void> => {
     clearInterval(cleanupTimer);
-    for (const active of transports.values()) await active.transport.close().catch(() => undefined);
+    for (const active of transports.values()) {
+      active.watches.closeAll();
+      await active.transport.close().catch(() => undefined);
+    }
     transports.clear();
     await new Promise<void>((resolve) => httpServer.close(() => resolve()));
   };

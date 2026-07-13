@@ -13,12 +13,13 @@ The server can run locally over stdio, over an authenticated loopback/private St
 
 ## Current status
 
-Version **0.2.0** exposes **80 MCP tools** and includes:
+The current `main` branch exposes **84 MCP tools**. Version **0.2.0** is the package baseline, with 0.3 development active on `main`:
 
 - Windows, macOS, and Linux adapters.
 - MCP stdio and Streamable HTTP transports.
 - OpenAI Secure MCP Tunnel setup scripts.
 - Persistent process sessions with stdin and paginated output.
+- Native file-watch sessions with bounded retention and cursor pagination.
 - Direct image-returning screen observation.
 - Multi-step autonomous computer-use sequences.
 - OCR-based `find text` and `click text` workflows.
@@ -31,7 +32,7 @@ Version **0.2.0** exposes **80 MCP tools** and includes:
 | Area | Tools |
 |---|---|
 | Configuration | `config_get`, `config_set` |
-| Filesystem/search | `fs_read`, `fs_read_many`, `fs_write`, `fs_patch`, `fs_list`, `fs_mkdir`, `fs_copy`, `fs_move`, `fs_delete`, `fs_stat`, `fs_hash`, `fs_search` |
+| Filesystem/search | `fs_read`, `fs_read_many`, `fs_write`, `fs_patch`, `fs_list`, `fs_mkdir`, `fs_copy`, `fs_move`, `fs_delete`, `fs_stat`, `fs_hash`, `fs_search`, `fs_watch_start`, `fs_watch_events`, `fs_watch_stop`, `fs_watch_sessions` |
 | Terminal/processes | `shell_exec`, `process_start`, `process_output`, `process_input`, `process_terminate`, `process_sessions`, `process_list`, `process_kill` |
 | Computer observation | `desktop_capabilities`, `monitor_list`, `desktop_screenshot`, `desktop_screenshot_file`, `computer_observe`, `screen_ocr`, `screen_find_text`, `accessibility_snapshot` |
 | Computer actions | `mouse_move`, `mouse_click`, `mouse_drag`, `mouse_scroll`, `cursor_position`, `keyboard_type`, `keyboard_key`, `keyboard_hotkey`, `computer_sequence`, `computer_act_and_observe`, `computer_click_text`, `accessibility_invoke` |
@@ -205,6 +206,12 @@ A reliable loop is:
 For deterministic multi-step operations, use `computer_sequence`. For visible text, `computer_click_text` captures, OCRs, clicks the chosen occurrence, and returns the post-click screen.
 
 See [docs/COMPUTER_USE.md](docs/COMPUTER_USE.md).
+
+## File-watch sessions
+
+Use `fs_watch_start` for a file or directory, then poll `fs_watch_events` with the returned session ID. Event cursors are monotonically increasing; pass the previous `nextCursor` as the exclusive `after` cursor. Buffers are finite (`maxWatchEvents`), and `truncatedBeforeCursor` reports when older events were evicted before the requested cursor. Call `fs_watch_stop` when observation is complete.
+
+Recursive native watching depends on the host platform and filesystem. Unsupported combinations return an explicit error instead of reporting a successful session.
 
 ## Platform support
 

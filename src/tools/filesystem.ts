@@ -361,4 +361,39 @@ export function registerFilesystemTools(server: McpServer, context: ToolContext)
     },
     annotations: { readOnlyHint: true }
   }, async (args) => context.search.search(args));
+
+  context.register(server, 'fs_watch_start', {
+    title: 'Start File Watch',
+    description: 'Start a bounded native file watch session for a file or directory.',
+    inputSchema: {
+      path: z.string().min(1),
+      recursive: z.boolean().default(false)
+    },
+    annotations: { readOnlyHint: false }
+  }, async (args) => context.watches.start(args));
+
+  context.register(server, 'fs_watch_events', {
+    title: 'Read File Watch Events',
+    description: 'Read a cursor-paginated page of retained native file watch events.',
+    inputSchema: {
+      id: z.string().uuid(),
+      after: z.number().int().min(0).default(0),
+      limit: z.number().int().min(1).max(1_000).default(100)
+    },
+    annotations: { readOnlyHint: true }
+  }, ({ id, after, limit }) => context.watches.read(id, after, limit));
+
+  context.register(server, 'fs_watch_stop', {
+    title: 'Stop File Watch',
+    description: 'Close a native file watcher while retaining its final buffered events.',
+    inputSchema: { id: z.string().uuid() },
+    annotations: { readOnlyHint: false }
+  }, ({ id }) => context.watches.stop(id));
+
+  context.register(server, 'fs_watch_sessions', {
+    title: 'List File Watch Sessions',
+    description: 'List active and recently stopped file watch sessions.',
+    inputSchema: {},
+    annotations: { readOnlyHint: true }
+  }, () => ({ sessions: context.watches.list() }));
 }

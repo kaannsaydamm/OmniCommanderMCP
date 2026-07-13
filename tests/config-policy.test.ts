@@ -18,6 +18,15 @@ afterEach(async () => {
 });
 
 describe('configuration and policy', () => {
+  it('uses bounded profile-specific watch event limits', async () => {
+    const base = await makeTempDir();
+    const safe = await loadConfig([`--config=${path.join(base, 'safe.json')}`, '--safe']);
+    const full = await loadConfig([`--config=${path.join(base, 'full.json')}`, '--full']);
+
+    expect(safe.maxWatchEvents).toBe(10_000);
+    expect(full.maxWatchEvents).toBe(100_000);
+  });
+
   it('enforces allowed roots in safe mode', async () => {
     const base = await makeTempDir();
     const allowed = path.join(base, 'allowed');

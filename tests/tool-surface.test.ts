@@ -24,9 +24,10 @@ describe('MCP tool surface', () => {
     const response = await client.listTools();
     const names = response.tools.map((tool) => tool.name);
 
-    expect(names.length).toBeGreaterThanOrEqual(55);
+    expect(names).toHaveLength(84);
     expect(names).toEqual(expect.arrayContaining([
       'shell_exec', 'process_start', 'fs_read', 'http_request',
+      'fs_watch_start', 'fs_watch_events', 'fs_watch_stop', 'fs_watch_sessions',
       'computer_observe', 'computer_sequence', 'computer_click_text', 'accessibility_snapshot',
       'window_control', 'application_launch', 'service_control', 'package_manage',
       'scheduled_task_manage', 'firewall_rule', 'power_control'
