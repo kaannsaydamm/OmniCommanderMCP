@@ -3,7 +3,6 @@
 ## Development
 
 ```bash
-npm run materialize
 npm install
 npm run check
 npm run build

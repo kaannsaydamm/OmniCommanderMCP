@@ -1,18 +1,46 @@
 {
   "name": "omni-commander-mcp",
-  "version": "0.2.0-bootstrap",
-  "description": "Cross-platform local and remote MCP agent for terminal, OS automation, and computer use.",
+  "version": "0.2.0",
+  "description": "A local-first, cross-platform MCP server for full desktop, filesystem, terminal, process, network and system control.",
   "type": "module",
-  "bin": { "omni-commander": "dist/index.js" },
-  "engines": { "node": ">=20" },
-  "scripts": {
-    "materialize": "node scripts/materialize-source.mjs",
-    "bootstrap": "node scripts/materialize-source.mjs && npm install && npm run check && npm run build",
-    "dev": "tsx src/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
-    "check": "tsc -p tsconfig.json --noEmit"
+  "main": "dist/index.js",
+  "bin": {
+    "omni-commander": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "scripts",
+    "deploy",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    ".env.example",
+    "mcp.example.json"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "npm run typecheck && npm test",
+    "start:http": "node dist/index.js --http",
+    "dev:http": "tsx src/index.ts --http"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "desktop-automation",
+    "filesystem",
+    "terminal",
+    "process-management",
+    "ai-agent"
+  ],
+  "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
     "express": "^5.2.1",

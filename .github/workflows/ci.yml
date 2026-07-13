@@ -1,13 +1,15 @@
 name: CI
 
-# GitHub-hosted jobs are temporarily manual because this repository's hosted
-# runner currently fails before executing any workflow step. Local validation
-# remains available through: npm run materialize && npm install && npm run check && npm run build
 on:
-  workflow_dispatch:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  test:
     strategy:
       fail-fast: false
       matrix:
@@ -20,7 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      - run: npm run materialize
-      - run: npm install
-      - run: npm run check
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
       - run: npm run build

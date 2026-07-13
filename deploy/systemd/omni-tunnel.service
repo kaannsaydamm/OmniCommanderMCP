@@ -1,0 +1,16 @@
+[Unit]
+Description=Omni Commander OpenAI Secure MCP Tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/omni-commander/tunnel.env
+ExecStart=/usr/local/bin/tunnel-client run --profile omni-commander
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

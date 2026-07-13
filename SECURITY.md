@@ -2,50 +2,59 @@
 
 ## Security boundary
 
-Omni Commander executes with the permissions of the operating-system account that launches it. It does not provide privilege escalation, sandbox escape, authentication bypass or operating-system policy bypass.
+Omni Commander runs with the permissions and desktop session of the OS account that launches it. It does not provide privilege escalation, UAC bypass, sudo bypass, sandbox escape, endpoint-security bypass, or a way around macOS TCC / Linux display-server controls.
 
-The `full` profile removes Omni Commander's own path, command, private-network and environment restrictions. It should be treated as equivalent to granting the connected MCP client an interactive terminal under the launching user account.
+The `full` profile is deliberately powerful. Treat it as granting the connected MCP principal:
 
-## Recommended deployment
+- An interactive terminal.
+- Read/write access wherever the OS account has access.
+- Keyboard/mouse/window control of the active desktop where permitted.
+- OS administration tools when the process has administrator/root rights.
+- Network access available to the host.
 
-1. Use `safe` unless unrestricted access is necessary.
-2. Use a dedicated low-privilege OS account for autonomous agents.
-3. Restrict `allowedRoots` to project directories, not an entire home drive.
-4. Keep audit logging enabled and protect the audit directory.
-5. Do not expose stdio through an unauthenticated network bridge.
-6. Review the MCP client's tool-confirmation and prompt-injection protections.
-7. Keep credentials outside readable project files where possible.
-8. Run endpoint protection and OS updates normally.
+## Recommended remote deployment
+
+1. Prefer stdio behind OpenAI Secure MCP Tunnel; do not expose an unauthenticated public listener.
+2. Associate the tunnel only with intended Platform organizations and ChatGPT workspaces.
+3. Protect the runtime API key and tunnel configuration.
+4. Keep the tunnel client and Omni Commander updated.
+5. Run under a dedicated user account with only the required data and application access.
+6. Keep audit logging enabled and forward logs to protected storage when used operationally.
+7. Review client-side tool approvals and prompt-injection defenses.
+8. Do not run untrusted files, browse hostile content, or ingest untrusted instructions in a full-control session without additional containment.
+
+## HTTP mode
+
+- Defaults to `127.0.0.1` with SDK host-header validation.
+- Requires a bearer token when binding outside loopback.
+- The built-in bearer mode is not a complete public internet authentication architecture.
+- Public deployments need TLS, OAuth 2.1, strict host/origin controls, rate limiting, revocation, principal-bound authorization, and an external security review.
 
 ## Safe-profile controls
 
-- Canonicalized path checks against configured roots.
-- Symlink-aware parent resolution for paths that do not yet exist.
-- Command-pattern deny rules for common destructive operations.
-- Loopback/private-network blocking for HTTP tools.
-- Environment-value reads disabled.
-- Bounded file, output, session and search buffers.
-- Audit argument redaction for common secret-bearing keys.
+- Canonicalized allowed-root checks, including nearest-existing-parent resolution for new paths.
+- Common catastrophic command-pattern denial.
+- Loopback/private-network SSRF blocking for HTTP tools.
+- Environment values hidden.
+- Finite file, output, search, and session buffers.
+- Audit redaction for common secret-bearing keys.
 
-These controls reduce accidental damage. They are not a complete sandbox and must not be treated as one.
+These controls reduce accidental damage; they are not a complete sandbox.
 
 ## Full-profile invariants
 
-Even in `full`:
+- `fs_delete` refuses direct filesystem-root deletion. An explicit shell remains possible by design.
+- `process_kill` refuses to kill the MCP server PID.
+- Destructive OS administration tools require `full`.
+- Limits remain finite, though substantially higher.
+- Audit logging remains on unless explicitly disabled.
 
-- `fs_delete` refuses a filesystem-root target. An explicit shell command remains possible.
-- The server refuses to kill its own PID through `process_kill`.
-- Request and buffer limits remain finite but are significantly larger.
-- Audit logging remains enabled unless explicitly disabled.
+## Computer-use risks
 
-## Reporting vulnerabilities
+Computer-use tools can click destructive confirmations, send messages, submit forms, reveal secrets on screen, or operate the wrong window. Autonomous workflows should observe after each meaningful action and verify target application, window title, and resulting state.
 
-Open a private GitHub security advisory when available. Include:
+OCR is probabilistic. Never treat an OCR match as authorization for financial, credential, legal, deletion, or external-communication actions without additional verification.
 
-- Affected version and platform.
-- Reproduction steps.
-- Expected and actual behavior.
-- Security impact.
-- A minimal proof of concept without unrelated sensitive data.
+## Vulnerability reporting
 
-Do not publish active exploitation details before a fix is available.
+Use a private GitHub security advisory where available. Include affected version/platform, reproduction, expected/actual behavior, impact, and a minimal proof of concept without unrelated sensitive data.
